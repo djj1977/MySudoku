@@ -1,18 +1,25 @@
 package com.arcsoft.sudoku;
 
 import android.graphics.Color;
+import android.os.Handler;
+import android.os.Message;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Gravity;
+import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.TextView;
 
 import java.util.ArrayList;
 
 public class MainActivity extends AppCompatActivity {
-
+    Handler handler = null;
     SudokuElement[][] sudokuArray = null;
     TextView[][] viewList = new TextView[9][9];
+    Button btn_start = null;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -21,7 +28,44 @@ public class MainActivity extends AppCompatActivity {
 
         initSudoku();
         initElementView();
-        process();
+
+        handler = new Handler(){
+            @Override
+            public void handleMessage(Message msg) {
+                Log.d("jjding", "refresh begin");
+                if (msg.what == 1)
+                {
+                    Log.d("jjding", "receive refresh request");
+                    _printInterResult();
+                    Log.d("jjding", "refresh finished");
+                }
+            }
+        };
+
+
+        btn_start = (Button)findViewById(R.id.button_calculate);
+        btn_start.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+//                handler.post(new Runnable() {
+//                    @Override
+//                    public void run() {
+//                        process();
+//                    }
+//                });
+                new Thread(){
+                    @Override
+                    public void run() {
+                        //super.run();
+                        process();
+                    }
+                }.start();
+            }
+        });
+
+
+
+
     }
 
     public void filter_row_col_9grid()
@@ -43,6 +87,7 @@ public class MainActivity extends AppCompatActivity {
         //filter1： 余数法，计算每个空格的初始取值范围
         //一格受其所在单元中其他20格的牵制（行，列，9宫格，假如这20格里面已经出现了1-8这8个数字，我们就可以断定这格一定是未出现的唯一数字9
         filer_all_row_colum_9grid();
+        printInterResult();
 
         do {
             continueFilter  = false;
@@ -50,33 +95,43 @@ public class MainActivity extends AppCompatActivity {
             if (true ==filter_by_new_calculated_value())
                 continueFilter = true;
 
+            printInterResult();
+
             //filter3：宫摒除法， 某个可能的取值数值只在9宫格中某个空格中有（不能有两个空格都显示这个可能的取值数值）
             if (true == filter_9grid())
                 continueFilter = true;
+            printInterResult();
 
             if (true == filter_by_new_calculated_value())//再次过滤
                 continueFilter = true;
+            printInterResult();
 
             //filter4: 行摒除法， 某个可能的取值数在某行中唯一存在， 则对应的空格就是这个数值
             if (true == filter_row())
                 continueFilter = true;
+            printInterResult();
 
             if (true == filter_by_new_calculated_value()) //再次过滤
                 continueFilter = true;
+            printInterResult();
 
             //filter5: 列摒除法，某个可能的取值数在某列中唯一存在， 则对应的空格就是这个数值
             if (true == filter_column())
                 continueFilter = true;
+            printInterResult();
 
             if (true == filter_by_new_calculated_value()) //再次过滤
                 continueFilter = true;
+            printInterResult();
 
             //filter： x-wing
             if (true == filter_by_x_wing())
                 continueFilter = true;
+            printInterResult();
 
             if (true == filter_by_new_calculated_value())
                 continueFilter = true;
+            printInterResult();
 
         }while (continueFilter);
 
@@ -512,9 +567,24 @@ public class MainActivity extends AppCompatActivity {
             }
     }
 
-    //打印结果
     public void printInterResult()
     {
+        Message msg = handler.obtainMessage();
+        msg.what = 1;
+        handler.sendMessage(msg);
+
+        try {
+            Log.d("jjding", "sleep 1s");
+            Thread.sleep(1000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+//        Log.d("jjding", "sleep 1s end...");
+    }
+    //打印结果
+    public void _printInterResult()
+    {
+
         for (int i = 0; i < 9; i ++)
             for (int j = 0; j < 9; j ++) {
                 if (sudokuArray[i][j].getValue() > 0 ) {
@@ -527,6 +597,8 @@ public class MainActivity extends AppCompatActivity {
                         viewList[i][j].setTextSize(15);
                         viewList[i][j].setTextColor(Color.BLUE);
                         viewList[i][j].setText(Integer.toString(calVal));
+                        Log.d("jjding","set textview["+i+"]["+j+"]");
+                        viewList[i][j].invalidate();
                     }
                 }
                 else {
@@ -537,6 +609,8 @@ public class MainActivity extends AppCompatActivity {
                     for (int k = 0; k < num; k++)
                         range += Integer.toString(rangeList.get(k));
                     viewList[i][j].setText(range);
+                    viewList[i][j].invalidate();
+
                 }
             }
     }
