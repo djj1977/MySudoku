@@ -47,12 +47,7 @@ public class MainActivity extends AppCompatActivity {
         btn_start.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-//                handler.post(new Runnable() {
-//                    @Override
-//                    public void run() {
-//                        process();
-//                    }
-//                });
+
                 new Thread(){
                     @Override
                     public void run() {
@@ -68,106 +63,123 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-    public void filter_row_col_9grid()
-    {
-        boolean cleared = false;
-        do {
-            filter_9grid();
-            cleared = filter_by_new_calculated_value(); //再次过滤
-            //filter_row();
-            //cleared = filter_by_new_calculated_value(); //再次过滤
-            //filter_column();
-
-        }while (cleared);
-    }
 
     public void process() {
 
         boolean continueFilter = false;
         //filter1： 余数法，计算每个空格的初始取值范围
-        //一格受其所在单元中其他20格的牵制（行，列，9宫格，假如这20格里面已经出现了1-8这8个数字，我们就可以断定这格一定是未出现的唯一数字9
-        filer_all_row_colum_9grid();
+        //某一格可能的取值范围受其所在单元相关的其他20格的牵制（行，列，9宫格），取值不可能是这20格中已经有的数字（已填充或者计算出来）
+        filer_fill_possible_value();
         printInterResult();
 
         do {
-            continueFilter  = false;
-            //filter2：根据某个空格新算出来数值，对其所在的行，列，九宫格内其他空格做取值范围缩减
-            if (true ==filter_by_new_calculated_value())
-                continueFilter = true;
-
-            printInterResult();
+            continueFilter = false;
 
             //filter3：宫摒除法， 某个可能的取值数值只在9宫格中某个空格中有（不能有两个空格都显示这个可能的取值数值）
-            if (true == filter_9grid())
+            if (true == filter_9grid()) {
                 continueFilter = true;
-            printInterResult();
-
-            if (true == filter_by_new_calculated_value())//再次过滤
-                continueFilter = true;
-            printInterResult();
+                printInterResult();
+            }
 
             //filter4: 行摒除法， 某个可能的取值数在某行中唯一存在， 则对应的空格就是这个数值
-            if (true == filter_row())
+            if (true == filter_row()) {
                 continueFilter = true;
-            printInterResult();
-
-            if (true == filter_by_new_calculated_value()) //再次过滤
-                continueFilter = true;
-            printInterResult();
+                printInterResult();
+            }
 
             //filter5: 列摒除法，某个可能的取值数在某列中唯一存在， 则对应的空格就是这个数值
-            if (true == filter_column())
+            if (true == filter_column()) {
                 continueFilter = true;
-            printInterResult();
-
-            if (true == filter_by_new_calculated_value()) //再次过滤
-                continueFilter = true;
-            printInterResult();
+                printInterResult();
+            }
 
             //filter： x-wing
-            if (true == filter_by_x_wing())
+            if (true == filter_by_x_wing()) {
                 continueFilter = true;
-            printInterResult();
-
-            if (true == filter_by_new_calculated_value())
-                continueFilter = true;
-            printInterResult();
+                printInterResult();
+            }
 
         }while (continueFilter);
 
-        //filter_row_col_9grid();
 
         printInterResult();
 
+    }
 
+    public boolean isAllCaculated()
+    {
+        boolean flag = false;
+        int calculatedNum = 0;
+
+        for (int i = 0; i < 9; i ++)
+            for (int j = 0; j < 9; j ++){
+                if (sudokuArray[i][j].getValue() > 0)
+                    calculatedNum ++;
+            }
+
+        if (81 == calculatedNum)
+            flag = true;
+
+        return flag;
     }
 
     public boolean filter_column()
     {
         boolean flag = false;
-        for (int j = 0; j < 9; j ++)
-            _filter_only_value_on_col(j);
 
+        if (isAllCaculated())
+            return flag;
+
+        for (int j = 0; j < 9; j ++) {
+            if (true == _filter_only_value_on_col(j))
+                flag = true;
+        }
+
+        if (true == filter_by_new_calculated_value()) {//再次过滤
+            flag = true;
+            //printInterResult();
+        }
         return flag;
     }
 
     public boolean filter_row()
     {
         boolean flag = false;
-        for (int i = 0; i < 9; i ++)
-            _filter_only_value_on_row(i);
 
+        if (isAllCaculated())
+            return flag;
+
+        for (int i = 0; i < 9; i ++) {
+            if (true == _filter_only_value_on_row(i))
+                flag = true;
+        }
+
+        if (true == filter_by_new_calculated_value()) {//再次过滤
+            flag = true;
+            //printInterResult();
+        }
         return flag;
     }
+
+
 
     public boolean filter_9grid()
     {
         boolean flag = false;
+
+        if (isAllCaculated())
+            return flag;
+
         for (int i = 0; i < 3; i++)
             for (int j = 0; j < 3; j++)
                 if (true == _filter_only_value_on_9gid(i, j)){//第i行，第j个 9宫格
                     flag = true;
                 }
+
+        if (true == filter_by_new_calculated_value()) {//再次过滤
+            flag = true;
+            //printInterResult();
+        }
 
         return flag;
     }
@@ -202,7 +214,7 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    class Blank{
+    class BlankCoordinates {
         int row;
         int col;
     }
@@ -212,7 +224,6 @@ public class MainActivity extends AppCompatActivity {
         boolean flag = false;
         //关于x-wing 的解释， 查看下面网页的说明
         //http://www.sudokufans.org.cn/forums/topic/8/
-
 
         LineStatitic[] lineArray = new LineStatitic[9]; //9行
         for (int i = 0; i < 9; i ++)
@@ -237,17 +248,17 @@ public class MainActivity extends AppCompatActivity {
         {
 
             for (int lineindex = 0; lineindex < 9; lineindex ++) {
-                Blank lt, rt, lb,rb; //lefttop, righttop, leftbottom, rightbottom
+                BlankCoordinates lt, rt, lb,rb; //lefttop, righttop, leftbottom, rightbottom
                 int left=0, right=0;
                 int leftbottom = 0, rightbottom = 0;
                 int leftcount = 0;
                 int rightcount = 0;
                 int paricount = 0;
 
-                lt = new Blank();
-                rt = new Blank();
-                lb = new Blank();
-                rb = new Blank();
+                lt = new BlankCoordinates();
+                rt = new BlankCoordinates();
+                lb = new BlankCoordinates();
+                rb = new BlankCoordinates();
 
                 if (lineArray[lineindex].numArray[val].list.size() != 2)
                     continue;
@@ -327,6 +338,11 @@ public class MainActivity extends AppCompatActivity {
 
             }
         }
+
+        if (true == filter_by_new_calculated_value()) {//再次过滤
+            flag = true;
+            //printInterResult();
+        }
         return flag;
     }
 
@@ -403,7 +419,7 @@ public class MainActivity extends AppCompatActivity {
         return flag;
     }
 
-    public void filer_all_row_colum_9grid()
+    public void filer_fill_possible_value()
     {
         ArrayList<Integer> rangeList = null;
 
@@ -431,8 +447,13 @@ public class MainActivity extends AppCompatActivity {
                     sudokuArray[i][j].calculated = true;
                 }
             }
+
+        if (true == filter_by_new_calculated_value()) {
+            //printInterResult();
+        }
     }
 
+    //filter2：根据某个空格新算出来数值，对其所在的行，列，九宫格内其他空格做取值范围缩减
     public boolean filter_by_new_calculated_value()
     {
         boolean calculated = false; //有计算出数值
@@ -495,6 +516,7 @@ public class MainActivity extends AppCompatActivity {
         return flag;
     }
 
+    //缩减该空格对应的20格空格的各自取值范围
     public void clearPossibleValue(int row, int col, int val)
     {
         //clear row
@@ -579,8 +601,8 @@ public class MainActivity extends AppCompatActivity {
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-//        Log.d("jjding", "sleep 1s end...");
     }
+
     //打印结果
     public void _printInterResult()
     {
@@ -669,24 +691,25 @@ public class MainActivity extends AppCompatActivity {
     {
         sudokuArray = new SudokuElement[9][9];
         int[][] initValueArr = {
-//                {0, 5, 0, 0, 0, 0, 0, 2, 0},
-//                {4, 0, 0, 2, 0, 6, 0, 0, 7},
-//                {0, 0, 8, 0, 3, 0, 1, 0, 0},
-//                {0, 1, 0, 0, 0, 0, 0, 6, 0},
-//                {0, 0, 9, 0, 0, 0, 5, 0, 0},
-//                {0, 7, 0, 0, 0, 0, 0, 9, 0},
-//                {0, 0, 5, 0, 8, 0, 3, 0, 0},
-//                {7, 0, 0, 9, 0, 1, 0, 0, 4},
-//                {0, 2, 0, 0, 0, 0, 0, 7, 0}
-                {3, 0, 0, 0, 9, 4, 0, 1, 0},
-                {5, 8, 0, 0, 0, 0, 0, 4, 0},
-                {0, 0, 0, 3, 0, 0, 0, 0, 6},
-                {2, 5, 0, 0, 8, 0, 0, 0, 0},
-                {9, 0, 0, 0, 7, 0, 0, 0, 1},
-                {0, 0, 0, 0, 4, 0, 0, 8, 9},
-                {4, 0, 0, 0, 0, 9, 0, 0, 0},
-                {0, 1, 0, 0, 0, 0, 0, 6, 3},
-                {0, 9, 0, 7, 1, 0, 0, 0, 2}
+                {0, 5, 0, 0, 0, 0, 0, 2, 0},
+                {4, 0, 0, 2, 0, 6, 0, 0, 7},
+                {0, 0, 8, 0, 3, 0, 1, 0, 0},
+                {0, 1, 0, 0, 0, 0, 0, 6, 0},
+                {0, 0, 9, 0, 0, 0, 5, 0, 0},
+                {0, 7, 0, 0, 0, 0, 0, 9, 0},
+                {0, 0, 5, 0, 8, 0, 3, 0, 0},
+                {7, 0, 0, 9, 0, 1, 0, 0, 4},
+                {0, 2, 0, 0, 0, 0, 0, 7, 0}
+
+//                {3, 0, 0, 0, 9, 4, 0, 1, 0},
+//                {5, 8, 0, 0, 0, 0, 0, 4, 0},
+//                {0, 0, 0, 3, 0, 0, 0, 0, 6},
+//                {2, 5, 0, 0, 8, 0, 0, 0, 0},
+//                {9, 0, 0, 0, 7, 0, 0, 0, 1},
+//                {0, 0, 0, 0, 4, 0, 0, 8, 9},
+//                {4, 0, 0, 0, 0, 9, 0, 0, 0},
+//                {0, 1, 0, 0, 0, 0, 0, 6, 3},
+//                {0, 9, 0, 7, 1, 0, 0, 0, 2}
 
         };
         for (int i = 0; i < 9; i ++)
