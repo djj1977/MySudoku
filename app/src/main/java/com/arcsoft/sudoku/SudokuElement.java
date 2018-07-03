@@ -10,6 +10,7 @@ public class SudokuElement {
     public int col;
 
     ArrayList<Integer> rangeList = null;
+
     public SudokuElement(int initvalue, boolean orignalVal)
     {
         value = initvalue;
@@ -27,6 +28,10 @@ public class SudokuElement {
 //        valueRange = new int[9];
 //        for(int i = 0;i <9; i ++)
 //            valueRange[i] = i+1;
+    }
+
+    public boolean isHasOrignalVal() {
+        return hasOrignalVal;
     }
 
     public boolean isOnlyValue()
