@@ -162,13 +162,12 @@ public class Sudoku {
 
         for (int i = 0; i < 3; i++)
             for (int j = 0; j < 3; j++)
-                if (true == _filter_only_value_on_9gid(i, j)){//第i行，第j个 9宫格
+                if (true == _filter_only_value_on_9grid(i, j)){//第i行，第j个 9宫格
                     flag = true;
                 }
 
         if (true == filter_by_new_calculated_value()) {//再次过滤
             flag = true;
-            //printInterResult();
         }
 
         return flag;
@@ -412,29 +411,7 @@ public class Sudoku {
         return flag;
     }
 
-    //filter：根据某个空格新算出来数值，对其所在的行，列，九宫格内其他空格做取值范围缩减
-    private boolean filter_by_new_calculated_value()
-    {
-        boolean cleared = false;
-        //do {
-        for (int i = 0; i <9; i ++)
-            for (int j = 0; j < 9; j ++)
-            {
-                if (sudokuArray[i][j].calculated) //在各种filter下也可能算出真实数值
-                {
-                    //int val = sudokuArray[i][j].getValue();
-                    //对应行，列，9宫格 的空格的取值范围去除这个数值
-                    clearPossibleValue(i, j);//, val);
-                    sudokuArray[i][j].calculated = false; //已经被使用过了， 就当成已存在的数值
-                    cleared = true;
-                }
-            }
-
-        return cleared;
-    }
-
-
-    private boolean _filter_only_value_on_9gid(int gridrow, int gridcol)
+     private boolean _filter_only_value_on_9grid(int gridrow, int gridcol)
     {
         int count = 0;
         int index_row = 0, index_col = 0;
@@ -469,6 +446,27 @@ public class Sudoku {
         }
 
         return flag;
+    }
+
+    //filter：根据某个空格新算出来数值，对其所在的行，列，九宫格内其他空格做取值范围缩减
+    private boolean filter_by_new_calculated_value()
+    {
+        boolean cleared = false;
+        //do {
+        for (int i = 0; i <9; i ++)
+            for (int j = 0; j < 9; j ++)
+            {
+                if (sudokuArray[i][j].calculated) //在各种filter下也可能算出真实数值
+                {
+                    //int val = sudokuArray[i][j].getValue();
+                    //对应行，列，9宫格 的空格的取值范围去除这个数值
+                    clearPossibleValue(i, j);//, val);
+                    sudokuArray[i][j].calculated = false; //已经被使用过了， 就当成已存在的数值
+                    cleared = true;
+                }
+            }
+
+        return cleared;
     }
 
     //缩减该空格对应的20格空格的各自取值范围
