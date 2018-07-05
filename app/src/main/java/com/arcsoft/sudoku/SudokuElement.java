@@ -87,4 +87,39 @@ public class SudokuElement {
 //        return rangeList;
     }
 
+    public boolean isValueInPossibleRange(int val)
+    {
+        //SudokuElement element
+        int num = getValueRange().size();
+        if(num <= 0 ) return false;
+
+        ArrayList rangeList = getValueRange();
+        for (int i = 0; i < num; i ++)
+            if (rangeList.get(i).equals(val))
+                return true;
+
+        return false;
+    }
+
+    //返回range的范围， 即还有几个可能的取值
+    int reduceRange(int val)
+    {
+        ArrayList<Integer> rangeList = getValueRange();
+        int num = rangeList.size();
+        for (int index = num-1; index >= 0; index --)
+        {
+            if (rangeList.get(index).equals(val))
+                rangeList.remove(index);
+        }
+
+        if (rangeList.size() == 1){ //only one, means calculated
+            calculated = true;
+            setValue(rangeList.get(0));
+        }
+
+        num = rangeList.size();
+
+        return num;
+    }
+
 }

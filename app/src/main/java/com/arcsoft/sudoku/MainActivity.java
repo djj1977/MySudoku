@@ -42,11 +42,8 @@ public class MainActivity extends AppCompatActivity {
         };
 
         sudoku = new Sudoku(handler);
-        sudoku.initSudoku();
+//        sudoku.initSudoku();
         initElementView();
-
-
-
 
         btn_start = findViewById(R.id.button_calculate);
         btn_start.setOnClickListener(new View.OnClickListener() {
@@ -62,16 +59,11 @@ public class MainActivity extends AppCompatActivity {
                 }.start();
             }
         });
-
-
     }
-
-
 
     //打印结果
     public void _printInterResult()
     {
-
         for (int i = 0; i < 9; i ++)
             for (int j = 0; j < 9; j ++) {
                 if (sudoku.getValue(i,j) > 0 ) {
@@ -83,7 +75,7 @@ public class MainActivity extends AppCompatActivity {
                         //调整默认字体大小
                         viewList[i][j].setTextSize(15);
                         viewList[i][j].setTextColor(Color.BLUE);
-                        viewList[i][j].setText(Integer.toString(calVal));
+                        viewList[i][j].setText(String.format("%s",calVal));
                         Log.d("jjding","set textview["+i+"]["+j+"]");
                         viewList[i][j].invalidate();
                     }
@@ -102,15 +94,8 @@ public class MainActivity extends AppCompatActivity {
             }
     }
 
-
-
-
-
-
     public void initElementView()
     {
-
-//        String viewId;
         viewList[0][0] = findViewById(R.id.textView00);
         viewList[0][1] = findViewById(R.id.textView01);
         viewList[0][2] = findViewById(R.id.textView02);

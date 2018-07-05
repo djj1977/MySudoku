@@ -13,6 +13,7 @@ public class Sudoku {
     public Sudoku(Handler handler)
     {
         this.handler = handler;
+        initSudoku();
     }
 
     public void initSudoku()
@@ -66,6 +67,7 @@ public class Sudoku {
     public void calulate()
     {
         boolean continueFilter = false;
+
         //filter1： 余数法，计算每个空格的初始取值范围
         //某一格可能的取值范围受其所在单元相关的其他20格的牵制（行，列，9宫格），取值不可能是这20格中已经有的数字（已填充或者计算出来）
         filer_fill_possible_value();
@@ -100,11 +102,10 @@ public class Sudoku {
 
         }while (continueFilter);
 
-
         printInterResult();
     }
 
-    public void printInterResult()
+    private void printInterResult()
     {
         Message msg = handler.obtainMessage();
         msg.what = 1;
@@ -112,13 +113,13 @@ public class Sudoku {
 
         try {
             Log.d("jjding", "sleep 1s");
-            Thread.sleep(1000);
+            Thread.sleep(500);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
     }
 
-    public void filer_fill_possible_value()
+    private void filer_fill_possible_value()
     {
         ArrayList<Integer> rangeList = null;
 
@@ -134,7 +135,8 @@ public class Sudoku {
                     if (isValueIn9Grid(val, i, j)) continue;
                     if (isValueInColumn(val, j)) continue;
                     if (isValueInRow(val, i)) continue;
-                    if (isValueInList(val, sudokuArray[i][j])) continue;
+                    if (sudokuArray[i][j].isValueInPossibleRange(val)) continue;
+
                     rangeList.add(val);
                 }
 
@@ -147,18 +149,16 @@ public class Sudoku {
                 }
             }
 
-        if (true == filter_by_new_calculated_value()) {
-            //printInterResult();
-        }
+        filter_by_new_calculated_value();
     }
 
-
-    public boolean filter_9grid()
+    private boolean filter_9grid()
     {
         boolean flag = false;
 
-        if (isAllCaculated())
-            return flag;
+        if (isAllCaculated()) {
+            return false;
+        }
 
         for (int i = 0; i < 3; i++)
             for (int j = 0; j < 3; j++)
@@ -175,12 +175,12 @@ public class Sudoku {
     }
 
 
-    public boolean filter_column()
+    private boolean filter_column()
     {
         boolean flag = false;
 
         if (isAllCaculated())
-            return flag;
+            return false;
 
         for (int j = 0; j < 9; j ++) {
             if (true == _filter_only_value_on_col(j))
@@ -194,12 +194,12 @@ public class Sudoku {
         return flag;
     }
 
-    public boolean filter_row()
+    private boolean filter_row()
     {
         boolean flag = false;
 
         if (isAllCaculated())
-            return flag;
+            return false;
 
         for (int i = 0; i < 9; i ++) {
             if (true == _filter_only_value_on_row(i))
@@ -214,11 +214,14 @@ public class Sudoku {
     }
 
 
-    public boolean filter_by_x_wing()
+    private boolean filter_by_x_wing()
     {
         boolean flag = false;
         //关于x-wing 的解释， 查看下面网页的说明
         //http://www.sudokufans.org.cn/forums/topic/8/
+
+        if (isAllCaculated())
+            return false;
 
         LineStatitic[] lineArray = new LineStatitic[9]; //9行
         for (int i = 0; i < 9; i ++)
@@ -244,7 +247,7 @@ public class Sudoku {
 
             for (int lineindex = 0; lineindex < 9; lineindex ++) {
                 BlankCoordinates lt, rt, lb,rb; //lefttop, righttop, leftbottom, rightbottom
-                int left=0, right=0;
+                int left, right;
                 int leftbottom = 0, rightbottom = 0;
                 int leftcount = 0;
                 int rightcount = 0;
@@ -323,20 +326,13 @@ public class Sudoku {
                             sudokuArray[rowindex][rt.col].setValue(rangeList.get(0));
                             sudokuArray[rowindex][rt.col].calculated = true; //触发重计算
                         }
-
-
                     }
-
-
-                    //filter_by_new_calculated_value();
                 }
-
             }
         }
 
         if (true == filter_by_new_calculated_value()) {//再次过滤
             flag = true;
-            //printInterResult();
         }
         return flag;
     }
@@ -416,29 +412,23 @@ public class Sudoku {
         return flag;
     }
 
-
-
     //filter：根据某个空格新算出来数值，对其所在的行，列，九宫格内其他空格做取值范围缩减
     private boolean filter_by_new_calculated_value()
     {
-        boolean calculated = false; //有计算出数值
         boolean cleared = false;
         //do {
-        calculated = false;
         for (int i = 0; i <9; i ++)
             for (int j = 0; j < 9; j ++)
             {
                 if (sudokuArray[i][j].calculated) //在各种filter下也可能算出真实数值
                 {
-                    calculated = true;
-                    int val = sudokuArray[i][j].getValue();
+                    //int val = sudokuArray[i][j].getValue();
                     //对应行，列，9宫格 的空格的取值范围去除这个数值
-                    clearPossibleValue(i, j, val);
+                    clearPossibleValue(i, j);//, val);
                     sudokuArray[i][j].calculated = false; //已经被使用过了， 就当成已存在的数值
                     cleared = true;
                 }
             }
-        //}while(calculated);
 
         return cleared;
     }
@@ -482,28 +472,23 @@ public class Sudoku {
     }
 
     //缩减该空格对应的20格空格的各自取值范围
-    private void clearPossibleValue(int row, int col, int val)
+    private void clearPossibleValue(int row, int col)//, int val)
     {
+        int val = 0;
+        SudokuElement orgElement = sudokuArray[row][col];
+        val = orgElement.getValue();
+        if (0 == val)
+            return; //当前空格并没有计算出来的数值， 直接返回
+
         //clear row
         for (int i = 0; i < 9; i ++)
         {
             SudokuElement element = sudokuArray[row][i];
             if (element.getValue() > 0) continue;
 
-            ArrayList<Integer> rangeList = element.getValueRange();
-            int num = rangeList.size();
-            for (int index = num-1; index >= 0; index --)
-            {
-                if (rangeList.get(index).equals(val))
-                    rangeList.remove(index);
-            }
-            if (rangeList.size() == 1) //only one, means calculated
-            {
-                element.calculated = true;
-                element.setValue(rangeList.get(0));
+            element.reduceRange(val);
+            clearPossibleValue(row, i);
 
-                clearPossibleValue(row, i, rangeList.get(0));
-            }
         }
 
         //clear column
@@ -512,21 +497,8 @@ public class Sudoku {
             SudokuElement element = sudokuArray[i][col];
             if (element.getValue() > 0) continue;
 
-            ArrayList<Integer> rangeList = element.getValueRange();
-            int num = rangeList.size();
-            for (int index = num-1; index >= 0; index --)
-            {
-                if (rangeList.get(index).equals(val))
-                    rangeList.remove(index);
-            }
-
-            if (rangeList.size() == 1) //only one, means calculated
-            {
-                element.calculated = true;
-                element.setValue(rangeList.get(0));
-
-                clearPossibleValue(i, col, rangeList.get(0));
-            }
+            element.reduceRange(val);
+            clearPossibleValue(i, col);
         }
 
         //clear 9宫格
@@ -536,37 +508,11 @@ public class Sudoku {
                 SudokuElement element = sudokuArray[i][j];
                 if (element.getValue() > 0) continue;
 
-                ArrayList<Integer> rangeList = element.getValueRange();
-                int num = rangeList.size();
-                for (int index = num-1; index >= 0; index --)
-                {
-                    if (rangeList.get(index).equals(val))
-                        rangeList.remove(index);
-                }
-
-                if (rangeList.size() == 1) //only one, means calculated
-                {
-                    element.calculated = true;
-                    element.setValue(rangeList.get(0));
-
-                    clearPossibleValue(i, j, rangeList.get(0));
-                }
+                element.reduceRange(val);
+                clearPossibleValue(i, j);
             }
     }
 
-
-    private boolean isValueInList(int val, SudokuElement element)
-    {
-        int num = element.getValueRange().size();
-        if(num <= 0 ) return false;
-
-        ArrayList rangeList = element.getValueRange();
-        for (int i = 0; i < num; i ++)
-            if (rangeList.get(i).equals(val))
-                return true;
-
-        return false;
-    }
 
     private boolean isValueInRow(int value, int row)
     {
