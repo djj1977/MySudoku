@@ -16,18 +16,13 @@ public class SudokuElement {
         value = initvalue;
         hasOrignalVal = orignalVal;
         rangeList = new ArrayList<Integer>();
-//        valueRange = new int[9];
-//        for(int i = 0;i <9; i ++)
-//            valueRange[i] = i+1;
     }
     public SudokuElement(int initvalue)
     {
         value = initvalue;
 
         rangeList = new ArrayList<Integer>();
-//        valueRange = new int[9];
-//        for(int i = 0;i <9; i ++)
-//            valueRange[i] = i+1;
+
     }
 
     public boolean isHasOrignalVal() {
@@ -40,17 +35,6 @@ public class SudokuElement {
             return true;
         else
             return false;
-
-//        int num = 0;
-//        for (int i = 0; i < 9; i ++)
-//            if (valueRange[i] > 0)
-//                num ++;
-//
-//        if (num > 1) //取值数至少在2个以上
-//            return true;
-//        else
-//            return false;
-
     }
 
     public void setValue(int val)
@@ -58,33 +42,21 @@ public class SudokuElement {
         value = val;
     }
 
+    public void setInitValue(int val)
+    {
+        value = val;
+        hasOrignalVal = true;
+        calculated = false;
+    }
+
     public int getValue()
     {
-//        int value = 0;
-//        int num = 0;
-//        for (int i = 0; i < 9; i ++) {
-//            if (valueRange[i] > 0) {
-//                num++;
-//                value = valueRange[i];
-//            }
-//        }
-//
-//        if (num > 1) //至少有2个取值可能， 所以没有唯一数值
-//            value = 0;
-
         return value;
     }
 
     ArrayList<Integer> getValueRange()
     {
         return rangeList;
-//        ArrayList<Integer> rangeList = new ArrayList<Integer>();
-//        for (int i = 0; i < 9; i ++) {
-//            if (valueRange[i] > 0) {
-//                rangeList.add(valueRange[i]);
-//            }
-//        }
-//        return rangeList;
     }
 
     public boolean isValueInPossibleRange(int val)

@@ -20,15 +20,17 @@ public class Sudoku {
     {
         sudokuArray = new SudokuElement[9][9];
         int[][] initValueArr = {
-                {0, 5, 0, 0, 0, 0, 0, 2, 0},
-                {4, 0, 0, 2, 0, 6, 0, 0, 7},
-                {0, 0, 8, 0, 3, 0, 1, 0, 0},
-                {0, 1, 0, 0, 0, 0, 0, 6, 0},
-                {0, 0, 9, 0, 0, 0, 5, 0, 0},
-                {0, 7, 0, 0, 0, 0, 0, 9, 0},
-                {0, 0, 5, 0, 8, 0, 3, 0, 0},
-                {7, 0, 0, 9, 0, 1, 0, 0, 4},
-                {0, 2, 0, 0, 0, 0, 0, 7, 0}
+                {0, 5, 0,   0, 0, 0,    0, 2, 0},
+                {4, 0, 0,   2, 0, 6,    0, 0, 7},
+                {0, 0, 8,   0, 3, 0,    1, 0, 0},
+
+                {0, 1, 0,   0, 0, 0,    0, 6, 0},
+                {0, 0, 9,   0, 0, 0,    5, 0, 0},
+                {0, 7, 0,   0, 0, 0,    0, 9, 0},
+
+                {0, 0, 5,   0, 8, 0,    3, 0, 0},
+                {7, 0, 0,   9, 0, 1,    0, 0, 4},
+                {0, 2, 0,   0, 0, 0,    0, 7, 0}
 
 //                {3, 0, 0, 0, 9, 4, 0, 1, 0},
 //                {5, 8, 0, 0, 0, 0, 0, 4, 0},
@@ -50,10 +52,28 @@ public class Sudoku {
             }
     }
 
+    public void clear()
+    {
+        for (int i = 0; i < 9; i ++)
+            for (int j = 0; j < 9; j ++)
+            {
+                sudokuArray[i][j].setValue(0);
+                sudokuArray[i][j].calculated = false;
+                sudokuArray[i][j].hasOrignalVal = false;
+                sudokuArray[i][j].getValueRange().clear();
+            }
+    }
+
     public int getValue(int row, int col)
     {
         return sudokuArray[row][col].getValue();
     }
+
+    public void setInitValue(int row, int col, int val)
+    {
+        sudokuArray[row][col].setInitValue(val);
+    }
+
     public boolean hasOrignalVal(int row, int col)
     {
         return sudokuArray[row][col].isHasOrignalVal();
